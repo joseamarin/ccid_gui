@@ -13,11 +13,20 @@
   const url = links[0].protocol + '//' + decodeURIComponent(links[0].hostname)
     .toUpperCase() + links[0].pathname + links[0].search.replace(/\&/g, '&amp;');
 
+  anchors.forEach(a => {
+    if (a.href.includes('ccID')) {
+      a.style.display = 'inline-block';
+      a.style.border = '2px dotted red';
+    }
+  });
+
   const insertId = anchors => {
     anchors.forEach(anchor => {
       if (anchor.href.includes('ccID')) {
         anchor.addEventListener('click', e => {
-          let input = prompt('Enter the ccID');
+          let input = prompt('Enter the ccID', anchor.href
+            .match(/ccID=*[0-9]*/gi)[0]
+            .substring(anchor.href.match(/ccID=*[0-9]*/gi)[0].length, 5));
           if (input == null) {
             return;
           }
@@ -28,6 +37,7 @@
             alert('Invalid input');
           }
           else {
+            anchor.href = anchor.href.replace(/ccID=*[0-9]*/gi, 'ccID=');
             input = input.trim();
             anchor.href = anchor.protocol
               + '//'
@@ -51,13 +61,11 @@
     const anchor = document.createElement('a');
     anchor.innerText = 'Download';
     anchor.setAttribute('download', getFileName());
-
     btn.appendChild(anchor);
     document.documentElement.insertBefore(btn, document.body);
   }
 
   const dl = data => {
-
     const anchor = document.querySelector('.js-btn > a');
     anchor.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(data));
     /Gecko\/+\d*/.test(navigator.userAgent) ? anchor.click() : null;
