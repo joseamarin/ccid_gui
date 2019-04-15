@@ -164,6 +164,7 @@
     source = source.replace(cssRegex, '');
     source = source.replace(jsNameRegex, '');
     source = source.replace(/class=""/gi, '');
+    source = source.replace(/<script src="https:\/\/rawcdn.githack.com\/>?.*<\/script>/gmi, '');
 
     dl(source);
   }
