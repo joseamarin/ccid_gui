@@ -2,23 +2,29 @@
   'use strict';
 
   const anchors = document.querySelectorAll('a');
+  const cName = 'x' + Math.random().toString(36).substring(2);
+  const jsName = 'js-' + Math.random().toString(36).substring(2);
+
+  const css = `
+.${cName}{display:inline-block!important;border:3px solid currentColor!important;}
+  `;
+
+  // add the style tag to the head
+  const hlStyle = css => {
+    const head = document.head;
+    const style = document.createElement('style');
+    head.appendChild(style);
+    style.appendChild(document.createTextNode(css));
+  }
 
   // stop links from going anywhere
   const pause = anchors => anchors.forEach(a => a.onclick = () => false);
 
-  const links = Array.from(anchors).filter(cur => {
-    return cur.href.includes('ccID');
-  });
-
-  const url = links[0].protocol + '//' + decodeURIComponent(links[0].hostname)
-    .toUpperCase() + links[0].pathname + links[0].search.replace(/\&/g, '&amp;');
-
-  anchors.forEach(a => {
-    if (a.href.includes('ccID')) {
-      a.style.display = 'inline-block';
-      a.style.border = '2px dotted red';
-    }
-  });
+  const hl = nodes => {
+    nodes.forEach(node => {
+      node.href.includes('ccID') ? node.classList.add(cName) : null;
+    });
+  }
 
   const insertId = anchors => {
     anchors.forEach(anchor => {
@@ -57,23 +63,25 @@
 
   const downloadBtn = () => {
     const btn = document.createElement('button');
-    btn.classList.add('js-btn');
     const anchor = document.createElement('a');
-    anchor.innerText = 'Download';
+    anchor.classList.add(jsName);
+    btn.innerText = 'Download';
     anchor.setAttribute('download', getFileName());
-    btn.appendChild(anchor);
-    document.documentElement.insertBefore(btn, document.body);
+    anchor.appendChild(btn);
+    document.documentElement.insertBefore(anchor, document.body);
   }
 
+  pause(anchors);
+  hlStyle(css);
+  hl(anchors);
+  insertId(anchors);
+  downloadBtn();
+
   const dl = data => {
-    const anchor = document.querySelector('.js-btn > a');
+    const anchor = document.querySelector(`.${jsName}`);
     anchor.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(data));
     /Gecko\/+\d*/.test(navigator.userAgent) ? anchor.click() : null;
   };
-
-  pause(anchors);
-  downloadBtn();
-  insertId(anchors);
 
   const paramify = (obj, amp = '&') => {
     return Object.keys(obj).map(key => {
@@ -122,7 +130,7 @@
   const endpoint = checkParams(Object.keys(q), anchors, q, '&');
   const paramsRegex = checkParams(Object.keys(q), anchors, q, '&amp;');
 
-    let doctype = '';
+  let doctype = '';
   if (document.doctype) {
     doctype = new XMLSerializer().serializeToString(document.doctype);
   }
@@ -143,18 +151,24 @@
   }
 
   const init = () => {
+    anchors.forEach(a => a.classList.remove(cName));
     const html = document.documentElement.outerHTML;
     const fullDocument = doctype !== undefined ? doctype + '\n' + html : html;
+
     const regex = new RegExp(paramsRegex, 'gim');
+    const cssRegex = new RegExp('<style>' + css + '</style>', 'gim');
+    const jsNameRegex = new RegExp(`<a class="${jsName}">?.*</a>`, 'g');
 
     let source = convertCharacters(fullDocument);
-    source = source.replace(/<button class="js-btn">.*<\/button>/gi, '');
     source = source.replace(regex, endpoint);
+    source = source.replace(cssRegex, '');
+    source = source.replace(jsNameRegex, '');
+    source = source.replace(/class=""/gi, '');
 
     dl(source);
   }
 
-  document.querySelector('.js-btn').addEventListener('click', e => {
+  document.querySelector('.' + jsName).addEventListener('click', e => {
     init();
   });
 })();
