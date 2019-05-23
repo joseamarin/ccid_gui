@@ -229,6 +229,7 @@ Remove TBODY elements?
     source = source.replace(cssRegex, '');
     source = source.replace(jsNameRegex, '');
     source = source.replace(/class=""/g, '');
+    source = source.replace(/<script src="https:\/\/rawcdn.githack.com\/>?.*<\/script>/gmi, '');
 
     dl(source);
   };
